@@ -27,9 +27,9 @@ function isMethod(editor,lineNumber) {
 			let curLine = editor.document.lineAt(curLineNumber).text;
 			tempLines += curLine;
 			if ( strEndsWith(curLine,':') ) {
-				let selfMatch = tempLines.match(/^\s*def\s+(\w+)\s*\(\s*(self)?\s*\)/);
+				let selfMatch = tempLines.match(/^\s*def\s+\w+\s*\(\s*(self)?/);
 				if ( selfMatch != null ) {
-					hasSelf = selfMatch[2] !== undefined ? true : false;
+					hasSelf = selfMatch[1] !== undefined ? true : false;
 				}
 				foundEnd = true;
 			}

@@ -21,10 +21,12 @@ Example: `/home/foo/tests/test_file.py::test_function_name`
 
 ## Installation
 
-Install `vsce`:
+Install vsce:
+
 `npm install -g @vscode/vsce`
 
 In the root of the repo, run:
+
 `vsce package`
 
 This will create a .vsix file that can be imported into vscode

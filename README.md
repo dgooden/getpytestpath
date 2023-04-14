@@ -29,3 +29,6 @@ In the root of the repo, run:
 
 This will create a .vsix file that can be imported into vscode
 
+## Known issues
+
+Will most probabaly not work in a file with sub classes, as it looks backwards from the function to find the class it's a part of.

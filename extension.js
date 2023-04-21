@@ -70,7 +70,7 @@ function activate(context) {
 
 			const {methodName,hasSelf} = isMethod(editor,lineNumber);
 			if ( methodName != null ) {
-				let output = editor.document.uri.fsPath;
+				let output = vscode.workspace.asRelativePath(editor.document.uri.fsPath);
 				if ( hasSelf ) {
 					const className = getClass(editor.document,lineNumber);
 					if ( className != null ) {

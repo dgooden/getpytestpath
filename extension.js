@@ -93,7 +93,7 @@ function activate(context) {
 	let disposableWithPrefix = vscode.commands.registerCommand('getpytestpath.getPathWithPrefix', function () {
 		// The code you place here will be executed every time your command is executed
 		const config = vscode.workspace.getConfiguration("getpytestpath");
-		prefix = config.get("prefix");
+		const prefix = config.get("prefix");
 		getPytestPath(prefix);
 	});
 

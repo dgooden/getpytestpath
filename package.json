@@ -2,7 +2,7 @@
   "name": "getpytestpath",
   "displayName": "getpytestpath",
   "description": "",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "engines": {
     "vscode": "^1.77.0"
   },
@@ -30,6 +30,16 @@
           "group": "getpytestgroup"
         }
       ]
+    },
+    "configuration": {
+      "title": "GetPytestPath",
+      "properties": {
+        "getpytestpath.prefix": {
+          "type": "string",
+          "default": "",
+          "description": "Prefix to be added in front of pytest path, useful for local debugging via docker"
+        }
+      }
     }
   },
   "scripts": {

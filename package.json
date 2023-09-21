@@ -20,6 +20,10 @@
       {
         "command": "getpytestpath.getPath",
         "title": "Get pytest path"
+      },
+      {
+        "command": "getpytestpath.getPathWithPrefix",
+        "title": "Get pytest path with prefix"
       }
     ],
     "menus": {
@@ -27,6 +31,11 @@
         {
           "when": "editorLangId == python",
           "command": "getpytestpath.getPath",
+          "group": "getpytestgroup"
+        },
+        {
+          "when": "editorLangId == python",
+          "command": "getpytestpath.getPathWithPrefix",
           "group": "getpytestgroup"
         }
       ]

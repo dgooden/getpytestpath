@@ -50,6 +50,31 @@ function getClass(document,lineNumber) {
 	return null;
 }
 
+function getPytestPath(prefix) {
+	let editor = vscode.window.activeTextEditor;
+
+	if ( editor ) {
+		let pos = editor.selection.active;
+		let lineNumber = pos.line;
+
+		const {methodName,hasSelf} = isMethod(editor,lineNumber);
+		if ( methodName != null ) {
+			let output = vscode.workspace.asRelativePath(editor.document.uri.fsPath);
+			if ( hasSelf ) {
+				const className = getClass(editor.document,lineNumber);
+				if ( className != null ) {
+					output += "::" + className;
+				}
+			}
+			output += "::"+methodName;
+			if ( prefix ) {
+				output = prefix + output;
+			}
+			vscode.env.clipboard.writeText(output);
+		}
+	}
+}
+
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
 
@@ -60,30 +85,20 @@ function activate(context) {
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with  registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('getpytestpath.getPath', function () {
+	let disposableNoPrefix= vscode.commands.registerCommand('getpytestpath.getPath', function () {
 		// The code you place here will be executed every time your command is executed
-		let editor = vscode.window.activeTextEditor;
-
-		if ( editor ) {
-			let pos = editor.selection.active;
-			let lineNumber = pos.line;
-
-			const {methodName,hasSelf} = isMethod(editor,lineNumber);
-			if ( methodName != null ) {
-				let output = vscode.workspace.asRelativePath(editor.document.uri.fsPath);
-				if ( hasSelf ) {
-					const className = getClass(editor.document,lineNumber);
-					if ( className != null ) {
-						output += "::" + className;
-					}
-				}
-				output += "::"+methodName;
-				vscode.env.clipboard.writeText(output);
-			}
-		}
+		getPytestPath("");
 	});
 
-	context.subscriptions.push(disposable);
+	let disposableWithPrefix = vscode.commands.registerCommand('getpytestpath.getPathWithPrefix', function () {
+		// The code you place here will be executed every time your command is executed
+		const config = vscode.workspace.getConfiguration("getpytestpath");
+		prefix = config.get("prefix");
+		getPytestPath(prefix);
+	});
+
+	context.subscriptions.push(disposableNoPrefix);
+	context.subscriptions.push(disposableWithPrefix);
 }
 
 // This method is called when your extension is deactivated

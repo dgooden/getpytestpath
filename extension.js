@@ -50,7 +50,7 @@ function getClass(document,lineNumber) {
 	return null;
 }
 
-function getPytestPath(prefix) {
+function getPytestPath(add_relative_path,prefix) {
 	let editor = vscode.window.activeTextEditor;
 
 	if ( editor ) {
@@ -59,7 +59,10 @@ function getPytestPath(prefix) {
 
 		const {methodName,hasSelf} = isMethod(editor,lineNumber);
 		if ( methodName != null ) {
-			let output = vscode.workspace.asRelativePath(editor.document.uri.fsPath);
+			let output = "";
+			if ( add_relative_path ) {
+				output = vscode.workspace.asRelativePath(editor.document.uri.fsPath);
+			}
 			if ( hasSelf ) {
 				const className = getClass(editor.document,lineNumber);
 				if ( className != null ) {
@@ -87,14 +90,18 @@ function activate(context) {
 	// The commandId parameter must match the command field in package.json
 	let disposableNoPrefix= vscode.commands.registerCommand('getpytestpath.getPath', function () {
 		// The code you place here will be executed every time your command is executed
-		getPytestPath("");
+		getPytestPath(true,"");
 	});
 
 	let disposableWithPrefix = vscode.commands.registerCommand('getpytestpath.getPathWithPrefix', function () {
 		// The code you place here will be executed every time your command is executed
 		const config = vscode.workspace.getConfiguration("getpytestpath");
 		const prefix = config.get("prefix");
-		getPytestPath(prefix);
+		getPytestPath(true,prefix);
+	});
+
+	let disposableNoPath = vscode.commands.registerCommand('getpytestpath.getNoPath', function () {
+		getPytestPath(false,"");
 	});
 
 	context.subscriptions.push(disposableNoPrefix);

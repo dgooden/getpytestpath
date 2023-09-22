@@ -2,7 +2,7 @@
   "name": "getpytestpath",
   "displayName": "getpytestpath",
   "description": "",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "engines": {
     "vscode": "^1.77.0"
   },
@@ -18,16 +18,25 @@
   "contributes": {
     "commands": [
       {
+        "command": "getpytestpath.getNoPath",
+        "title": "Get test name with no path"
+      },
+      {
         "command": "getpytestpath.getPath",
-        "title": "Get pytest path"
+        "title": "Get test name with path"
       },
       {
         "command": "getpytestpath.getPathWithPrefix",
-        "title": "Get pytest path with prefix"
+        "title": "Get test name with path and prefix"
       }
     ],
     "menus": {
       "editor/context": [
+        {
+          "when": "editorLangId == python",
+          "command": "getpytestpath.getNoPath",
+          "group": "getpytestgroup"
+        },
         {
           "when": "editorLangId == python",
           "command": "getpytestpath.getPath",

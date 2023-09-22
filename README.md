@@ -1,15 +1,17 @@
 # getpytestpath README
 
 ## Features
-vscode extension that adds a command and context menu `Get pytest path` and `Get pytest path with prefix` to get the full path to a pytest function and adds it to the clipboard. Useful for pasting to the command line or if running tests via `Run and Debug`
+vscode extension that adds a few commands and context menus to get the path to a pytest/unittest function and add it to the clipboard. 
 
-![context_menu](https://github.com/dgooden/getpytestpath/assets/353080/5e2431de-b604-47e7-8b19-219eb89b2d57)
+Useful for pasting to the command line or if running tests via `Run and Debug`
 
+![context](https://github.com/dgooden/getpytestpath/assets/353080/8c1fddc8-ef3c-43b6-a156-42e8b4c76fae)
 
-Just right click on the function name of the test you want to run:
+Just right click on the function name of the test you want to run and choose the appropriate option:
 
-![select_function](https://github.com/dgooden/getpytestpath/assets/353080/f432c85a-8fb8-487a-a1be-b0e7f80aec57)
+![select](https://github.com/dgooden/getpytestpath/assets/353080/de63b0b5-4e45-437f-89a8-e2f87ae82e71)
 
+## With path
 
 Path format with class:
 
@@ -23,12 +25,25 @@ Path format without class:
 
 Example: `tests/test_file.py::test_function_name`
 
+## No path
+format with class:
+
+`::<class_name>::<test_function>`
+
+Example: `::test_class_name::test_function_name`
+
+Format without class:
+
+`<::<test_function>`
+
+Example: `::test_function_name`
+
 ## Prefix:
 You can set a prefix in the settings:
 
 ![settings_prefix_good](https://github.com/dgooden/getpytestpath/assets/353080/fd44ee63-cece-4d64-aa75-6557d60e8185)
 
-If you choose the `Get pytest path with prefix` command the prefix you set will be prepended to the path.
+If you choose the `Get test name with path with prefix` command the prefix you set will be prepended to the path.
 
 ## Installation
 

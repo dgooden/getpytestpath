@@ -2,20 +2,45 @@
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
 
-function strEndsWith(str,char)
+function strEndsWithStripComments(str,char)
 {
-	const regex = new RegExp(char + "\\s*$");
-	return regex.test(str);
+	// Need to strip any possible comments
+	const regex = /^([^#]*)/;
+	const match = str.match(regex);
+
+	if ( match ) {
+		const code = match[1].trim();
+		if ( code.length > 0 ) {
+			const lastCharacter = code.charAt(code.length -1);
+			if ( lastCharacter == char ) {
+				return true;
+			}
+		}
+	}
+	return false
+}
+
+function indentationLevel(lineText) {
+	let numSpaces = 0;
+	// convert tabs to 4 spaces for consistency
+	lineText = lineText.replace(/\t/g, ' '.repeat(4));
+	const leadingSpace = lineText.match(/^\s*/);
+	if ( leadingSpace ) {
+		numSpaces = leadingSpace[0].length;
+	}
+	return numSpaces;
 }
 
 function isMethod(editor,lineNumber) {
 	let methodName = null;
 	let hasSelf = false;
+	let methodSpaces = 0;
 
 	let lineText = editor.document.lineAt(lineNumber).text;
 	const methodNameMatches = lineText.match(/^\s*def\s+(\w+)/);
 	if ( methodNameMatches != null ) {
 		methodName = methodNameMatches[1];
+		methodSpaces = indentationLevel(lineText);
 		let foundEnd = false;
 		let tempLines = "";
 		let curLineNumber = lineNumber;
@@ -26,7 +51,7 @@ function isMethod(editor,lineNumber) {
 			}
 			let curLine = editor.document.lineAt(curLineNumber).text;
 			tempLines += curLine;
-			if ( strEndsWith(curLine,':') ) {
+			if ( strEndsWithStripComments(curLine,':') ) {
 				let selfMatch = tempLines.match(/^\s*def\s+\w+\s*\(\s*(self)?/);
 				if ( selfMatch != null ) {
 					hasSelf = selfMatch[1] !== undefined ? true : false;
@@ -36,15 +61,19 @@ function isMethod(editor,lineNumber) {
 			curLineNumber++;
 		}
 	}
-	return {methodName,hasSelf}
+	return {methodName,hasSelf,methodSpaces} 
 }
 
-function getClass(document,lineNumber) {
+function getClassByIndent(document,lineNumber,methodSpaces) {
+
 	for ( let i = lineNumber; i >= 0; i-- ) {
-		let line = document.lineAt(i).text;
-		let match = line.match(/^\s*class\s+(\w+)/);
+		let lineText = document.lineAt(i).text;
+		let match = lineText.match(/^\s*class\s+(\w+)/);
 		if ( match != null ) {
-			return match[1];
+			let classSpaces = indentationLevel(lineText);
+			if (( methodSpaces - classSpaces ) == 4 ) {
+				return match[1];
+			}
 		}
 	}
 	return null;
@@ -57,14 +86,14 @@ function getPytestPath(add_relative_path,prefix) {
 		let pos = editor.selection.active;
 		let lineNumber = pos.line;
 
-		const {methodName,hasSelf} = isMethod(editor,lineNumber);
+		const {methodName,hasSelf,methodSpaces} = isMethod(editor,lineNumber);
 		if ( methodName != null ) {
 			let output = "";
 			if ( add_relative_path ) {
 				output = vscode.workspace.asRelativePath(editor.document.uri.fsPath);
 			}
 			if ( hasSelf ) {
-				const className = getClass(editor.document,lineNumber);
+				const className = getClassByIndent(editor.document,lineNumber,methodSpaces);
 				if ( className != null ) {
 					output += "::" + className;
 				}
@@ -101,11 +130,22 @@ function activate(context) {
 	});
 
 	let disposableNoPath = vscode.commands.registerCommand('getpytestpath.getNoPath', function () {
-		getPytestPath(false,"");
+		const filePath = getPytestPath(true,"");
+	
+		const debugConfig = {
+			"type": "python",
+			"request": "launch",
+			"name": "custom",
+			"program": filePath
+		}
+		
+		vscode.debug.startDebugging(vscode.workspace.getWorkspaceFolder(vscode.Uri.file(filePath)), debugConfig)
+		//getPytestPath(false,"");
 	});
 
 	context.subscriptions.push(disposableNoPrefix);
 	context.subscriptions.push(disposableWithPrefix);
+	context.subscriptions.push(disposableNoPath);
 }
 
 // This method is called when your extension is deactivated
@@ -113,5 +153,9 @@ function deactivate() {}
 
 module.exports = {
 	activate,
-	deactivate
+	deactivate,
+	strEndsWithStripComments,
+	indentationLevel,
+	isMethod,
+	getClassByIndent,
 }

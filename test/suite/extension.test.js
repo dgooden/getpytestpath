@@ -1,15 +1,63 @@
 const assert = require('assert');
-
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
 const vscode = require('vscode');
-// const myExtension = require('../extension');
+const myExtension = require('../../extension');
 
-suite('Extension Test Suite', () => {
+suite('getpytestpath Test Suite', () => {
 	vscode.window.showInformationMessage('Start all tests.');
 
-	test('Sample test', () => {
-		assert.strictEqual(-1, [1, 2, 3].indexOf(5));
-		assert.strictEqual(-1, [1, 2, 3].indexOf(0));
+	suite('strEndsWithStripComments Tests', () => {
+		test('end token with no comment', () => {
+			const testString = "def foo():";
+			const result = myExtension.strEndsWithStripComments(testString,":");
+			assert.strictEqual(result,true);
+		});
+
+		test('no end token with no comment', () => {
+
+			const testString = "class foo()";
+			const result = myExtension.strEndsWithStripComments(testString,":");
+			assert.strictEqual(result,false);
+		});
+
+		test('end token with comment', () => {
+
+			const testString = "def foo(): # some comment here";
+			const result = myExtension.strEndsWithStripComments(testString,":");
+			assert.strictEqual(result,true);
+		});
+
+		test('no end token with comment', () => {
+
+			const testString = "def foo() # some comment here";
+			const result = myExtension.strEndsWithStripComments(testString,":");
+			assert.strictEqual(result,false);
+		});
+	});
+
+	suite('indentationLevel tests', () => {
+		test('zero indentation', () => {
+			const testLine = "class testClass():";
+			const result = myExtension.indentationLevel(testLine);
+			assert.strictEqual(result,0);
+		});
+
+		test('four spaces indentation', () => {
+			const testLine = "    class testClass():";
+			const result = myExtension.indentationLevel(testLine);
+			assert.strictEqual(result,4);
+		});
+
+		test('tab indentation (four spaces)',() => {
+			const testLine = "\tclass testClass():";
+			const result = myExtension.indentationLevel(testLine);
+			assert.strictEqual(result,4);
+		});
+	});
+
+	suite('isMethod tests', () => {
+	});
+	suite('getClassByIndent tests', () => {
+
 	});
 });
+

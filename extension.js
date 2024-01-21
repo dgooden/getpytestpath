@@ -131,21 +131,22 @@ function activate(context) {
 
 	let disposableNoPath = vscode.commands.registerCommand('getpytestpath.getNoPath', function () {
 		const filePath = getPytestPath(true,"");
-	
 		const debugConfig = {
 			"type": "python",
-			"request": "launch",
-			"name": "custom",
-			"program": filePath
+			"name": "Test Extension",
 		}
-		
-		vscode.debug.startDebugging(vscode.workspace.getWorkspaceFolder(vscode.Uri.file(filePath)), debugConfig)
+		vscode.debug.startDebugging(undefined, debugConfig);
 		//getPytestPath(false,"");
+	});
+
+	let getDynamicPath = vscode.commands.registerCommand('getpytestpath.getDynamicPath', function() {
+		return "test test test";
 	});
 
 	context.subscriptions.push(disposableNoPrefix);
 	context.subscriptions.push(disposableWithPrefix);
 	context.subscriptions.push(disposableNoPath);
+	context.subscriptions.push(getDynamicPath);
 }
 
 // This method is called when your extension is deactivated

@@ -20,7 +20,8 @@ function strEndsWithStripComments(str,char)
 	return false
 }
 
-function indentationLevel(lineText) {
+function indentationLevel(lineText)
+{
 	let numSpaces = 0;
 	// convert tabs to 4 spaces for consistency
 	lineText = lineText.replace(/\t/g, ' '.repeat(4));
@@ -31,7 +32,8 @@ function indentationLevel(lineText) {
 	return numSpaces;
 }
 
-function isMethod(editor,lineNumber) {
+function isMethod(editor,lineNumber)
+{
 	let methodName = null;
 	let hasSelf = false;
 	let methodSpaces = 0;
@@ -64,8 +66,8 @@ function isMethod(editor,lineNumber) {
 	return {methodName,hasSelf,methodSpaces} 
 }
 
-function getClassByIndent(document,lineNumber,methodSpaces) {
-
+function getClassByIndent(document,lineNumber,methodSpaces)
+{
 	for ( let i = lineNumber; i >= 0; i-- ) {
 		let lineText = document.lineAt(i).text;
 		let match = lineText.match(/^\s*class\s+(\w+)/);
@@ -79,8 +81,10 @@ function getClassByIndent(document,lineNumber,methodSpaces) {
 	return null;
 }
 
-function getPytestPath(add_relative_path,prefix) {
+function getPytestPath(add_relative_path,prefix)
+{
 	let editor = vscode.window.activeTextEditor;
+	let output = "";
 
 	if ( editor ) {
 		let pos = editor.selection.active;
@@ -88,7 +92,6 @@ function getPytestPath(add_relative_path,prefix) {
 
 		const {methodName,hasSelf,methodSpaces} = isMethod(editor,lineNumber);
 		if ( methodName != null ) {
-			let output = "";
 			if ( add_relative_path ) {
 				output = vscode.workspace.asRelativePath(editor.document.uri.fsPath);
 			}
@@ -102,9 +105,9 @@ function getPytestPath(add_relative_path,prefix) {
 			if ( prefix ) {
 				output = prefix + output;
 			}
-			vscode.env.clipboard.writeText(output);
 		}
 	}
+	return output;
 }
 
 // This method is called when your extension is activated
@@ -113,53 +116,40 @@ function getPytestPath(add_relative_path,prefix) {
 /**
  * @param {vscode.ExtensionContext} context
  */
-function activate(context) {
+function activate(context)
+{
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with  registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposableNoPrefix= vscode.commands.registerCommand('getpytestpath.getPath', function () {
-		// The code you place here will be executed every time your command is executed
-		getPytestPath(true,"");
+
+	const config = vscode.workspace.getConfiguration("getpytestpath");
+	const prefix = config.get("prefix");
+	const add_relative_path = config.get("add_relative_path");
+
+	let disposableExecuteDebugger = vscode.commands.registerCommand('getpytestpath.executeDebugger', async function () {
+		debugName = config.get("launchConfigName");
+		const workspaceFolder = vscode.workspace.workspaceFolders[0];
+		await vscode.debug.startDebugging(workspaceFolder, debugName);
 	});
 
-	let disposableWithPrefix = vscode.commands.registerCommand('getpytestpath.getPathWithPrefix', function () {
-		// The code you place here will be executed every time your command is executed
-		const config = vscode.workspace.getConfiguration("getpytestpath");
-		const prefix = config.get("prefix");
-		getPytestPath(true,prefix);
+	let disposableGetPath = vscode.commands.registerCommand('getpytestpath.getPath', function () {
+		const finalPath = getPytestPath(add_relative_path,"");
+		vscode.env.clipboard.writeText(finalPath);
 	});
 
-	let disposableNoPath = vscode.commands.registerCommand('getpytestpath.getNoPath', function () {
-		const filePath = getPytestPath(true,"");
-
-		// For "local", we need to us executeTask or some such when using docker
-		// For preprod/prestage use startDebugging
-		// Make this an option
-		/*const debugConfig = {
-			"type": "python",
-			"name": "Test Extension",
-			"request: "attach"
-		}
-		vscode.debug.startDebugging(undefined, debugConfig);*/
-		//getPytestPath(false,"");
+	let disposableGetPathAndPrefix = vscode.commands.registerCommand('getpytestpath.getPathAndPrefix', function () {
+		const finalPath = getPytestPath(add_relative_path,prefix);
+		vscode.env.clipboard.writeText(finalPath);
 	});
 
-
-	/* 
-		launch.json:
-		// "inputs": [ { "id": ???, "type": "command", "command": "getpytestpath.getDynamicPath"}]
-
-		Use the above in tasks.json, like "input:getdynamicpath or whatever"
-	*/
-
-	let getDynamicPath = vscode.commands.registerCommand('getpytestpath.getDynamicPath', function() {
-		return "test test test";
+	let disposableGetDynamicPath = vscode.commands.registerCommand('getpytestpath.getDynamicPath', function() {
+		return getPytestPath(add_relative_path,prefix);
 	});
 
-	context.subscriptions.push(disposableNoPrefix);
-	context.subscriptions.push(disposableWithPrefix);
-	context.subscriptions.push(disposableNoPath);
-	context.subscriptions.push(getDynamicPath);
+	context.subscriptions.push(disposableExecuteDebugger);
+	context.subscriptions.push(disposableGetPath);
+	context.subscriptions.push(disposableGetPathAndPrefix);
+	context.subscriptions.push(disposableGetDynamicPath);
 }
 
 // This method is called when your extension is deactivated

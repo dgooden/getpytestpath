@@ -131,13 +131,26 @@ function activate(context) {
 
 	let disposableNoPath = vscode.commands.registerCommand('getpytestpath.getNoPath', function () {
 		const filePath = getPytestPath(true,"");
-		const debugConfig = {
+
+		// For "local", we need to us executeTask or some such when using docker
+		// For preprod/prestage use startDebugging
+		// Make this an option
+		/*const debugConfig = {
 			"type": "python",
 			"name": "Test Extension",
+			"request: "attach"
 		}
-		vscode.debug.startDebugging(undefined, debugConfig);
+		vscode.debug.startDebugging(undefined, debugConfig);*/
 		//getPytestPath(false,"");
 	});
+
+
+	/* 
+		launch.json:
+		// "inputs": [ { "id": ???, "type": "command", "command": "getpytestpath.getDynamicPath"}]
+
+		Use the above in tasks.json, like "input:getdynamicpath or whatever"
+	*/
 
 	let getDynamicPath = vscode.commands.registerCommand('getpytestpath.getDynamicPath', function() {
 		return "test test test";

@@ -121,13 +121,12 @@ function activate(context)
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with  registerCommand
 	// The commandId parameter must match the command field in package.json
-
 	const config = vscode.workspace.getConfiguration("getpytestpath");
 	const prefix = config.get("prefix");
-	const add_relative_path = config.get("add_relative_path");
+	const add_relative_path = config.get("useRelativePath");
 
 	let disposableExecuteDebugger = vscode.commands.registerCommand('getpytestpath.executeDebugger', async function () {
-		debugName = config.get("launchConfigName");
+		const debugName = config.get("launchConfigName");
 		const workspaceFolder = vscode.workspace.workspaceFolders[0];
 		await vscode.debug.startDebugging(workspaceFolder, debugName);
 	});

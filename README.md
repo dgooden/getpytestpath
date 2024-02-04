@@ -51,11 +51,11 @@ In order to be able to automatically execute the debugger with the chosen path, 
 Add this to the inputs section:
 
 ```json
-  {
-    "id": "pytestDynamicPath",
-    "type": "command",
-    "command": "getpytestpath.getDynamicPath"
-  }
+{
+  "id": "pytestDynamicPath",
+  "type": "command",
+  "command": "getpytestpath.getDynamicPath"
+}
 ```
 
 Add a task in your configurations section to execute what you want. The important part is to make sure the path comes from `${input:pytestDynamicPath}`

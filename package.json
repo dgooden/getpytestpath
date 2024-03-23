@@ -24,10 +24,6 @@
       {
         "command": "getpytestpath.getPath",
         "title": "Get test name with path"
-      },
-      {
-        "command": "getpytestpath.getPathAndPrefix",
-        "title": "Get test name with path and prefix"
       }
     ],
     "menus": {
@@ -41,31 +37,26 @@
           "when": "editorLangId == python",
           "command": "getpytestpath.getPath",
           "group": "getpytestgroup"
-        },
-        {
-          "when": "editorLangId == python",
-          "command": "getpytestpath.getPathAndPrefix",
-          "group": "getpytestgroup"
         }
       ]
     },
     "configuration": {
       "title": "GetPytestPath",
       "properties": {
-        "getpytestpath.prefix": {
+        "getpytestpath.copyPath": {
           "type": "string",
-          "default": "",
-          "description": "Prefix to be added in front of pytest path, useful for local debugging via docker"
+          "default": "${relative_path}",
+          "description": "Path to use for copy to clipboard. Will automatically add classname/testname as needed. Valid tokens: ${relative_path}, ${absolute_path}"
         },
-        "getpytestpath.useRelativePath": {
-          "type": "boolean",
-          "default": true,
-          "description": "Add relative file path to pytest path"
+        "getpytestpath.debugPath": {
+          "type": "string",
+          "default": "${relative_path}",
+          "description": "Path to use for running via debugger. Will automatically add classname/testname as needed. Valid tokens: ${relative_path}, ${absolute_path}"
         },
         "getpytestpath.launchConfigName": {
           "type": "string",
           "default": "Execute From getPytestPath",
-          "description": "Name of launch.json configuration to execute"
+          "description": "Name of launch.json configuration to execute for debugger"
         }
       }
     }

@@ -47,17 +47,34 @@ suite('getpytestpath Test Suite', () => {
 			assert.strictEqual(result,4);
 		});
 
-		test('tab indentation (four spaces)',() => {
+		test('tab indentation (four spaces)', () => {
 			const testLine = "\tclass testClass():";
 			const result = myExtension.indentationLevel(testLine);
 			assert.strictEqual(result,4);
 		});
 	});
 
-	suite('isMethod tests', () => {
-	});
-	suite('getClassByIndent tests', () => {
+	/*suite('isMethod tests', () => {
+		const vsCodeInstance = await vscode.test.setup();
+		test('one line method name', () => {
 
+		});
+		test('multi line method name', () => {
+
+		});
+	});
+	suite('isClass tests', async () => {
+		const vsCodeInstance = await vscode.test.setup();
+
+		test('returns correct class name', async () => {
+			testFilePath = resolve(__dirname, 'data', 'test_python_file_with_class.py');
+			await vscode.window.showTextDocument(vscode.Uri.file(testFilePath));
+			const editor = vscode.window.activeTextEditor;
+			const result = myExtension.isClass(editor,1);
+			assert.strictEqual(result,"testClassName");
+		})
+	});*/
+	suite('getClassByIndent tests', () => {
 	});
 });
 

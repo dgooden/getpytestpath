@@ -66,6 +66,17 @@ function isMethod(editor,lineNumber)
 	return {methodName,hasSelf,methodSpaces} 
 }
 
+function isClass(editor,lineNumber)
+{
+	let className = null;
+	let lineText = editor.document.lineAt(lineNumber).text;
+	let classNameMatches = lineText.match(/^\s*class\s+(\w+)/);
+	if ( classNameMatches != null ) {
+		className = classNameMatches[1]
+	}
+	return className
+}
+
 function getClassByIndent(document,lineNumber,methodSpaces)
 {
 	for ( let i = lineNumber; i >= 0; i-- ) {
@@ -81,20 +92,39 @@ function getClassByIndent(document,lineNumber,methodSpaces)
 	return null;
 }
 
-function getPytestPath(add_relative_path,prefix)
+function resolvePath(editor, classMethod, pathToResolve)
 {
-	let editor = vscode.window.activeTextEditor;
+	//classMethod should contain ::<class_name>::<method_name> or just ::<class_name>
+	let output = "";
+	const tokens = {
+		"absolute_path": editor.document.uri.fsPath,
+		"relative_path": vscode.workspace.asRelativePath(editor.document.uri.fsPath)
+	}
+	if ( classMethod != null ) {
+		output = pathToResolve + classMethod
+		for ( const tokenName in tokens ) {
+			output = output.replaceAll("${"+tokenName+"}", tokens[tokenName]);
+		}
+	}
+	return output;
+}
+
+function getPytestPath(editor,config)
+{
 	let output = "";
 
 	if ( editor ) {
 		let pos = editor.selection.active;
 		let lineNumber = pos.line;
+		// is just a class?
+		const className = isClass(editor,lineNumber);
+		if ( className != null ) {
+			return "::"+className
+		}
 
+		// is a method?
 		const {methodName,hasSelf,methodSpaces} = isMethod(editor,lineNumber);
 		if ( methodName != null ) {
-			if ( add_relative_path ) {
-				output = vscode.workspace.asRelativePath(editor.document.uri.fsPath);
-			}
 			if ( hasSelf ) {
 				const className = getClassByIndent(editor.document,lineNumber,methodSpaces);
 				if ( className != null ) {
@@ -102,9 +132,6 @@ function getPytestPath(add_relative_path,prefix)
 				}
 			}
 			output += "::"+methodName;
-			if ( prefix ) {
-				output = prefix + output;
-			}
 		}
 	}
 	return output;
@@ -122,8 +149,7 @@ function activate(context)
 	// Now provide the implementation of the command with  registerCommand
 	// The commandId parameter must match the command field in package.json
 	const config = vscode.workspace.getConfiguration("getpytestpath");
-	const prefix = config.get("prefix");
-	const add_relative_path = config.get("useRelativePath");
+	const editor = vscode.window.activeTextEditor;
 
 	let disposableExecuteDebugger = vscode.commands.registerCommand('getpytestpath.executeDebugger', async function () {
 		const debugName = config.get("launchConfigName");
@@ -132,22 +158,21 @@ function activate(context)
 	});
 
 	let disposableGetPath = vscode.commands.registerCommand('getpytestpath.getPath', function () {
-		const finalPath = getPytestPath(add_relative_path,"");
-		vscode.env.clipboard.writeText(finalPath);
-	});
-
-	let disposableGetPathAndPrefix = vscode.commands.registerCommand('getpytestpath.getPathAndPrefix', function () {
-		const finalPath = getPytestPath(add_relative_path,prefix);
+		const pathToResolve = config.get("copyPath");
+		const classMethod = getPytestPath(editor,config);
+		const finalPath = resolvePath(editor,classMethod,pathToResolve);
 		vscode.env.clipboard.writeText(finalPath);
 	});
 
 	let disposableGetDynamicPath = vscode.commands.registerCommand('getpytestpath.getDynamicPath', function() {
-		return getPytestPath(add_relative_path,prefix);
+		const pathToResolve = config.get("debugPath");
+		const classMethod = getPytestPath(editor,config);
+		const finalPath = resolvePath(editor,classMethod,pathToResolve);
+		return finalPath
 	});
 
 	context.subscriptions.push(disposableExecuteDebugger);
 	context.subscriptions.push(disposableGetPath);
-	context.subscriptions.push(disposableGetPathAndPrefix);
 	context.subscriptions.push(disposableGetDynamicPath);
 }
 
@@ -160,5 +185,7 @@ module.exports = {
 	strEndsWithStripComments,
 	indentationLevel,
 	isMethod,
+	isClass,
 	getClassByIndent,
+	resolvePath,
 }

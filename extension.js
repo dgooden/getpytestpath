@@ -109,7 +109,7 @@ function resolvePath(editor, classMethod, pathToResolve)
 	return output;
 }
 
-function getPytestPath(editor,config)
+function getPytestPath(editor)
 {
 	let output = "";
 
@@ -159,14 +159,14 @@ function activate(context)
 
 	let disposableGetPath = vscode.commands.registerCommand('getpytestpath.getPath', function () {
 		const pathToResolve = config.get("copyPath");
-		const classMethod = getPytestPath(editor,config);
+		const classMethod = getPytestPath(editor);
 		const finalPath = resolvePath(editor,classMethod,pathToResolve);
 		vscode.env.clipboard.writeText(finalPath);
 	});
 
 	let disposableGetDynamicPath = vscode.commands.registerCommand('getpytestpath.getDynamicPath', function() {
 		const pathToResolve = config.get("debugPath");
-		const classMethod = getPytestPath(editor,config);
+		const classMethod = getPytestPath(editor);
 		const finalPath = resolvePath(editor,classMethod,pathToResolve);
 		return finalPath
 	});

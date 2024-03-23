@@ -1,8 +1,10 @@
 {
   "name": "getpytestpath",
   "displayName": "getpytestpath",
+  "publisher": "dgooden",
+  "private": true,
   "description": "",
-  "version": "0.0.3",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.77.0"
   },
@@ -18,33 +20,24 @@
   "contributes": {
     "commands": [
       {
-        "command": "getpytestpath.getNoPath",
-        "title": "Get test name with no path"
+        "command": "getpytestpath.executeDebugger",
+        "title": "Run test in debugger"
       },
       {
         "command": "getpytestpath.getPath",
         "title": "Get test name with path"
-      },
-      {
-        "command": "getpytestpath.getPathWithPrefix",
-        "title": "Get test name with path and prefix"
       }
     ],
     "menus": {
       "editor/context": [
         {
           "when": "editorLangId == python",
-          "command": "getpytestpath.getNoPath",
+          "command": "getpytestpath.executeDebugger",
           "group": "getpytestgroup"
         },
         {
           "when": "editorLangId == python",
           "command": "getpytestpath.getPath",
-          "group": "getpytestgroup"
-        },
-        {
-          "when": "editorLangId == python",
-          "command": "getpytestpath.getPathWithPrefix",
           "group": "getpytestgroup"
         }
       ]
@@ -52,10 +45,20 @@
     "configuration": {
       "title": "GetPytestPath",
       "properties": {
-        "getpytestpath.prefix": {
+        "getpytestpath.copyPath": {
           "type": "string",
-          "default": "",
-          "description": "Prefix to be added in front of pytest path, useful for local debugging via docker"
+          "default": "test:${relative_path}",
+          "description": "Path to use for copy to clipboard. Will automatically add classname/testname as needed. Valid tokens: ${relative_path}, ${absolute_path}"
+        },
+        "getpytestpath.debugPath": {
+          "type": "string",
+          "default": "test:${relative_path}",
+          "description": "Path to use for running via debugger. Will automatically add classname/testname as needed. Valid tokens: ${relative_path}, ${absolute_path}"
+        },
+        "getpytestpath.launchConfigName": {
+          "type": "string",
+          "default": "Execute From getPytestPath",
+          "description": "Name of launch.json configuration to execute for debugger"
         }
       }
     }
@@ -66,14 +69,15 @@
     "test": "node ./test/runTest.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.77.0",
     "@types/glob": "^8.1.0",
     "@types/mocha": "^10.0.1",
     "@types/node": "16.x",
+    "@types/vscode": "^1.77.0",
+    "@vscode/test-cli": "^0.0.4",
+    "@vscode/test-electron": "^2.3.8",
     "eslint": "^8.36.0",
     "glob": "^8.1.0",
     "mocha": "^10.2.0",
-    "typescript": "^4.9.5",
-    "@vscode/test-electron": "^2.3.0"
+    "typescript": "^4.9.5"
   }
 }

@@ -1,51 +1,115 @@
 # getpytestpath README
 
 ## Features
-vscode extension that adds a few commands and context menus to get the path to a pytest/unittest function and add it to the clipboard. 
+vscode extension that adds a few commands and context menus to run a test automatically, or to get the path to a pytest/unittest function and add it to the clipboard. 
 
-Useful for pasting to the command line or if running tests via `Run and Debug`
+<!-- ![context](https://github.com/dgooden/getpytestpath/assets/353080/09991963-fdba-4384-b5ba-e6b8855981de) -->
 
-![context](https://github.com/dgooden/getpytestpath/assets/353080/8c1fddc8-ef3c-43b6-a156-42e8b4c76fae)
+![context_menu](https://github.com/dgooden/getpytestpath/assets/353080/e09e87d8-bcb2-4cd1-8ad3-514350670eea)
 
-Just right click on the function name of the test you want to run and choose the appropriate option:
+Just right click on the method or class name of the test you want to run and choose the appropriate option:
 
-![select](https://github.com/dgooden/getpytestpath/assets/353080/de63b0b5-4e45-437f-89a8-e2f87ae82e71)
+![select](https://github.com/dgooden/getpytestpath/assets/353080/600428a7-964a-40b2-b1b4-c50fd84797a4)
 
-## With path
+If you right click on the class name, all tests in that class will be run.
 
-Path format with class:
+## Configuration/Settings:
+You can set various options in the settings:
 
-`<path_to_test_file_from_root_of_project>::<class_name>::<test_function>`
+![settings](https://github.com/dgooden/getpytestpath/assets/353080/af64dd1e-95f9-4aa6-91fa-4fb9573da292)
 
-Example: `tests/test_file.py::test_class_name::test_function_name`
+`Copy Path` allows you to set the path used when copying to the clipboard.
 
-Path format without class:
+`Debug Path` allows you to set the path used when running the debugger.
 
-`<path_to_test_file_from_root_of_project>::<test_function>`
+Both of the above take the following tokens:
 
-Example: `tests/test_file.py::test_function_name`
+`${absolute_path}` - The absolute path of the file you have open in the editor
 
-## No path
-format with class:
+`$(relative_path)` - Relative path of the file you have open in the editor
 
-`::<class_name>::<test_function>`
+**Examples:**
 
-Example: `::test_class_name::test_function_name`
+`${absolute_path}` = `/home/your_name/project_name/tests/test_file.py::TestClassName::TestMethodName`
 
-Format without class:
+`${relative_path}` = `tests/test_file.py::TestClassName::TestMethodName`
 
-`<::<test_function>`
+`some_prefix:${relative_path}` = `some_prefix:tests/test_file_py::TestClassname::TestMethodName`
 
-Example: `::test_function_name`
+---
 
-## Prefix:
-You can set a prefix in the settings:
+`Launch Config Name` sets which `launch.json` configuration you want to run if you choose the `Run test in debugger` option.
 
-![settings_prefix_good](https://github.com/dgooden/getpytestpath/assets/353080/fd44ee63-cece-4d64-aa75-6557d60e8185)
+## Automatically execute debugger
 
-If you choose the `Get test name with path with prefix` command the prefix you set will be prepended to the path.
+In order to be able to automatically execute the debugger with the chosen path, you will need to add configurations to your `launch.json` and `task.json` files.
+
+### tasks.json:
+
+Add this to the inputs section:
+
+```json
+{
+  "id": "pytestDynamicPath",
+  "type": "command",
+  "command": "getpytestpath.getDynamicPath"
+}
+```
+
+Add a task in your configurations section to execute what you want. The important part is to make sure the path comes from `${input:pytestDynamicPath}`
+
+Here is an example of running a docker container:
+
+```json
+{
+  "label": "docker-run-extension-test",
+  "command": "docker-compose -f docker-compose.yml -f docker-compose.test.yml run --publish 1235:1235 --rm test fab \"${input:pytestDynamicPath} -vvv\"",
+  "type": "shell",
+  "isBackground": true,
+  "problemMatcher": [
+    {
+      "pattern": {
+        "regexp": ".",
+        "file": 1,
+        "location": 2,
+        "message": 3
+      },
+      "background": {
+        "beginsPattern": ".",
+        "endsPattern": "VSCode debugging - waiting for attach on port"
+      }
+    }
+  ]
+}
+```
+### launch.json
+
+Add an entry in your configurations, just make sure the `name` matches what you set in the extension setting `Launch Config Name`
+
+Here is the companion example to the Docker task from above:
+
+```json
+{
+  "name": "Execute From getPytestPath",
+  "type": "python",
+  "request": "attach",
+  "connect": {
+    "host": "localhost",
+    "port": 1235
+  },
+  "preLaunchTask": "docker-run-extension-test",
+  "pathMappings": [
+    {
+      "localRoot": "${workspaceFolder}",
+      "remoteRoot": "."
+    }
+  ]
+}
+```
 
 ## Installation
+
+You can download the release or build it manually.
 
 Install vsce:
 
@@ -59,4 +123,4 @@ This will create a .vsix file that can be imported into vscode
 
 ## Known issues
 
-Will most probably not work in a file with sub classes, as it looks backwards from the function to find the class it's a part of.
+None known.

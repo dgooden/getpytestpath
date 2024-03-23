@@ -2,20 +2,47 @@
 // Import the module and reference it with the alias vscode in your code below
 const vscode = require('vscode');
 
-function strEndsWith(str,char)
+function strEndsWithStripComments(str,char)
 {
-	const regex = new RegExp(char + "\\s*$");
-	return regex.test(str);
+	// Need to strip any possible comments
+	const regex = /^([^#]*)/;
+	const match = str.match(regex);
+
+	if ( match ) {
+		const code = match[1].trim();
+		if ( code.length > 0 ) {
+			const lastCharacter = code.charAt(code.length -1);
+			if ( lastCharacter == char ) {
+				return true;
+			}
+		}
+	}
+	return false
 }
 
-function isMethod(editor,lineNumber) {
+function indentationLevel(lineText)
+{
+	let numSpaces = 0;
+	// convert tabs to 4 spaces for consistency
+	lineText = lineText.replace(/\t/g, ' '.repeat(4));
+	const leadingSpace = lineText.match(/^\s*/);
+	if ( leadingSpace ) {
+		numSpaces = leadingSpace[0].length;
+	}
+	return numSpaces;
+}
+
+function isMethod(editor,lineNumber)
+{
 	let methodName = null;
 	let hasSelf = false;
+	let methodSpaces = 0;
 
 	let lineText = editor.document.lineAt(lineNumber).text;
 	const methodNameMatches = lineText.match(/^\s*def\s+(\w+)/);
 	if ( methodNameMatches != null ) {
 		methodName = methodNameMatches[1];
+		methodSpaces = indentationLevel(lineText);
 		let foundEnd = false;
 		let tempLines = "";
 		let curLineNumber = lineNumber;
@@ -26,7 +53,7 @@ function isMethod(editor,lineNumber) {
 			}
 			let curLine = editor.document.lineAt(curLineNumber).text;
 			tempLines += curLine;
-			if ( strEndsWith(curLine,':') ) {
+			if ( strEndsWithStripComments(curLine,':') ) {
 				let selfMatch = tempLines.match(/^\s*def\s+\w+\s*\(\s*(self)?/);
 				if ( selfMatch != null ) {
 					hasSelf = selfMatch[1] !== undefined ? true : false;
@@ -36,46 +63,78 @@ function isMethod(editor,lineNumber) {
 			curLineNumber++;
 		}
 	}
-	return {methodName,hasSelf}
+	return {methodName,hasSelf,methodSpaces} 
 }
 
-function getClass(document,lineNumber) {
+function isClass(editor,lineNumber)
+{
+	let className = null;
+	let lineText = editor.document.lineAt(lineNumber).text;
+	let classNameMatches = lineText.match(/^\s*class\s+(\w+)/);
+	if ( classNameMatches != null ) {
+		className = classNameMatches[1]
+	}
+	return className
+}
+
+function getClassByIndent(document,lineNumber,methodSpaces)
+{
 	for ( let i = lineNumber; i >= 0; i-- ) {
-		let line = document.lineAt(i).text;
-		let match = line.match(/^\s*class\s+(\w+)/);
+		let lineText = document.lineAt(i).text;
+		let match = lineText.match(/^\s*class\s+(\w+)/);
 		if ( match != null ) {
-			return match[1];
+			let classSpaces = indentationLevel(lineText);
+			if (( methodSpaces - classSpaces ) == 4 ) {
+				return match[1];
+			}
 		}
 	}
 	return null;
 }
 
-function getPytestPath(add_relative_path,prefix) {
-	let editor = vscode.window.activeTextEditor;
+function resolvePath(editor, classMethod, pathToResolve)
+{
+	//classMethod should contain ::<class_name>::<method_name> or just ::<class_name>
+	let output = "";
+	const tokens = {
+		"absolute_path": editor.document.uri.fsPath,
+		"relative_path": vscode.workspace.asRelativePath(editor.document.uri.fsPath)
+	}
+	if ( classMethod != null ) {
+		output = pathToResolve + classMethod
+		for ( const tokenName in tokens ) {
+			output = output.replaceAll("${"+tokenName+"}", tokens[tokenName]);
+		}
+	}
+	return output;
+}
+
+function getPytestPath(editor)
+{
+	let output = "";
 
 	if ( editor ) {
 		let pos = editor.selection.active;
 		let lineNumber = pos.line;
+		// is just a class?
+		const className = isClass(editor,lineNumber);
+		if ( className != null ) {
+			return "::"+className
+		}
 
-		const {methodName,hasSelf} = isMethod(editor,lineNumber);
+		// is a method?
+		const {methodName,hasSelf,methodSpaces} = isMethod(editor,lineNumber);
 		if ( methodName != null ) {
-			let output = "";
-			if ( add_relative_path ) {
-				output = vscode.workspace.asRelativePath(editor.document.uri.fsPath);
-			}
 			if ( hasSelf ) {
-				const className = getClass(editor.document,lineNumber);
+				const className = getClassByIndent(editor.document,lineNumber,methodSpaces);
 				if ( className != null ) {
 					output += "::" + className;
 				}
 			}
 			output += "::"+methodName;
-			if ( prefix ) {
-				output = prefix + output;
-			}
-			vscode.env.clipboard.writeText(output);
 		}
 	}
+	return output;
 }
 
 // This method is called when your extension is activated
@@ -84,28 +143,37 @@ function getPytestPath(add_relative_path,prefix) {
 /**
  * @param {vscode.ExtensionContext} context
  */
-function activate(context) {
+function activate(context)
+{
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with  registerCommand
 	// The commandId parameter must match the command field in package.json
-	let disposableNoPrefix= vscode.commands.registerCommand('getpytestpath.getPath', function () {
-		// The code you place here will be executed every time your command is executed
-		getPytestPath(true,"");
+	const config = vscode.workspace.getConfiguration("getpytestpath");
+	const editor = vscode.window.activeTextEditor;
+
+	let disposableExecuteDebugger = vscode.commands.registerCommand('getpytestpath.executeDebugger', async function () {
+		const debugName = config.get("launchConfigName");
+		const workspaceFolder = vscode.workspace.workspaceFolders[0];
+		await vscode.debug.startDebugging(workspaceFolder, debugName);
 	});
 
-	let disposableWithPrefix = vscode.commands.registerCommand('getpytestpath.getPathWithPrefix', function () {
-		// The code you place here will be executed every time your command is executed
-		const config = vscode.workspace.getConfiguration("getpytestpath");
-		const prefix = config.get("prefix");
-		getPytestPath(true,prefix);
+	let disposableGetPath = vscode.commands.registerCommand('getpytestpath.getPath', function () {
+		const pathToResolve = config.get("copyPath");
+		const classMethod = getPytestPath(editor);
+		const finalPath = resolvePath(editor,classMethod,pathToResolve);
+		vscode.env.clipboard.writeText(finalPath);
 	});
 
-	let disposableNoPath = vscode.commands.registerCommand('getpytestpath.getNoPath', function () {
-		getPytestPath(false,"");
+	let disposableGetDynamicPath = vscode.commands.registerCommand('getpytestpath.getDynamicPath', function() {
+		const pathToResolve = config.get("debugPath");
+		const classMethod = getPytestPath(editor);
+		const finalPath = resolvePath(editor,classMethod,pathToResolve);
+		return finalPath
 	});
 
-	context.subscriptions.push(disposableNoPrefix);
-	context.subscriptions.push(disposableWithPrefix);
+	context.subscriptions.push(disposableExecuteDebugger);
+	context.subscriptions.push(disposableGetPath);
+	context.subscriptions.push(disposableGetDynamicPath);
 }
 
 // This method is called when your extension is deactivated
@@ -113,5 +181,11 @@ function deactivate() {}
 
 module.exports = {
 	activate,
-	deactivate
+	deactivate,
+	strEndsWithStripComments,
+	indentationLevel,
+	isMethod,
+	isClass,
+	getClassByIndent,
+	resolvePath,
 }

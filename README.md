@@ -3,50 +3,48 @@
 ## Features
 vscode extension that adds a few commands and context menus to run a test automatically, or to get the path to a pytest/unittest function and add it to the clipboard. 
 
-![context](https://github.com/dgooden/getpytestpath/assets/353080/09991963-fdba-4384-b5ba-e6b8855981de)
+<!-- ![context](https://github.com/dgooden/getpytestpath/assets/353080/09991963-fdba-4384-b5ba-e6b8855981de) -->
 
-Just right click on the method name of the test you want to run and choose the appropriate option:
+![context_menu](https://github.com/dgooden/getpytestpath/assets/353080/e09e87d8-bcb2-4cd1-8ad3-514350670eea)
 
-![select](https://github.com/dgooden/getpytestpath/assets/353080/44d7554f-d377-46b9-84f8-a1a909e141c2)
+Just right click on the method or class name of the test you want to run and choose the appropriate option:
+
+![select](https://github.com/dgooden/getpytestpath/assets/353080/600428a7-964a-40b2-b1b4-c50fd84797a4)
+
+If you right click on the class name, all tests in that class will be run.
 
 ## Configuration/Settings:
 You can set various options in the settings:
 
-![settings](https://github.com/dgooden/getpytestpath/assets/353080/4575f52a-f4a9-47ce-a212-eaa4e8e841c5)
+![settings](https://github.com/dgooden/getpytestpath/assets/353080/af64dd1e-95f9-4aa6-91fa-4fb9573da292)
+
+`Copy Path` allows you to set the path used when copying to the clipboard.
+
+`Debug Path` allows you to set the path used when running the debugger.
+
+Both of the above take the following tokens:
+
+`${absolute_path}` - The absolute path of the file you have open in the editor
+
+`$(relative_path)` - Relative path of the file you have open in the editor
+
+**Examples:**
+
+`${absolute_path}` = `/home/your_name/project_name/tests/test_file.py::TestClassName::TestMethodName`
+
+`${relative_path}` = `tests/test_file.py::TestClassName::TestMethodName`
+
+`some_prefix:${relative_path}` = `some_prefix:tests/test_file_py::TestClassname::TestMethodName`
+
+---
 
 `Launch Config Name` sets which `launch.json` configuration you want to run if you choose the `Run test in debugger` option.
-
-If you choose the `Get test name with path and prefix` command the prefix you set will be prepended to the path.
-
-`Use relative path` adds the relative path in front of the class and method name.
-
-## Path format
-
-The final path output depends on which option you choose and the configuration settings.
-
-format with class:
-
-`<relative_path_to_test_file_from_root_of_project>::<class_name>::<test_function>`
-
-Example: `tests/test_file.py::test_class_name::test_function_name`
-
-format without class:
-
-`<relative_path_to_test_file_from_root_of_project>::<test_function>`
-
-Example: `tests/test_file.py::test_function_name`
-
-If `Use Relative Path` is not set, the format will exclude it.
-
-If `Prefix` is set, it will prepend the prefix in front of everything
-  * Note the `Get test name with path` option will ignore the `prefix` setting
 
 ## Automatically execute debugger
 
 In order to be able to automatically execute the debugger with the chosen path, you will need to add configurations to your `launch.json` and `task.json` files.
 
 ### tasks.json:
-
 
 Add this to the inputs section:
 
@@ -110,6 +108,8 @@ Here is the companion example to the Docker task from above:
 ```
 
 ## Installation
+
+You can download the release or build it manually.
 
 Install vsce:
 

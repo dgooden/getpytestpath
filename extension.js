@@ -148,16 +148,16 @@ function activate(context)
 	// The command has been defined in the package.json file
 	// Now provide the implementation of the command with  registerCommand
 	// The commandId parameter must match the command field in package.json
-	const config = vscode.workspace.getConfiguration("getpytestpath");
-	const editor = vscode.window.activeTextEditor;
-
 	let disposableExecuteDebugger = vscode.commands.registerCommand('getpytestpath.executeDebugger', async function () {
+		const config = vscode.workspace.getConfiguration("getpytestpath");
 		const debugName = config.get("launchConfigName");
 		const workspaceFolder = vscode.workspace.workspaceFolders[0];
 		await vscode.debug.startDebugging(workspaceFolder, debugName);
 	});
 
 	let disposableGetPath = vscode.commands.registerCommand('getpytestpath.getPath', function () {
+		const editor = vscode.window.activeTextEditor;
+		const config = vscode.workspace.getConfiguration("getpytestpath");
 		const pathToResolve = config.get("copyPath");
 		const classMethod = getPytestPath(editor);
 		const finalPath = resolvePath(editor,classMethod,pathToResolve);
@@ -165,6 +165,8 @@ function activate(context)
 	});
 
 	let disposableGetDynamicPath = vscode.commands.registerCommand('getpytestpath.getDynamicPath', function() {
+		const editor = vscode.window.activeTextEditor;
+		const config = vscode.workspace.getConfiguration("getpytestpath");
 		const pathToResolve = config.get("debugPath");
 		const classMethod = getPytestPath(editor);
 		const finalPath = resolvePath(editor,classMethod,pathToResolve);

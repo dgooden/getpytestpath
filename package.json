@@ -47,12 +47,12 @@
       "properties": {
         "getpytestpath.copyPath": {
           "type": "string",
-          "default": "${relative_path}",
+          "default": "test:${relative_path}",
           "description": "Path to use for copy to clipboard. Will automatically add classname/testname as needed. Valid tokens: ${relative_path}, ${absolute_path}"
         },
         "getpytestpath.debugPath": {
           "type": "string",
-          "default": "${relative_path}",
+          "default": "test:${relative_path}",
           "description": "Path to use for running via debugger. Will automatically add classname/testname as needed. Valid tokens: ${relative_path}, ${absolute_path}"
         },
         "getpytestpath.launchConfigName": {

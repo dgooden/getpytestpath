@@ -1,6 +1,7 @@
 {
   "name": "getpytestpath",
   "displayName": "getpytestpath",
+  "publisher": "Dennis Gooden",
   "description": "",
   "version": "1.0.0",
   "engines": {
